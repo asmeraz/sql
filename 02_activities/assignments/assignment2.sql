@@ -20,6 +20,11 @@ The `||` values concatenate the columns into strings.
 Edit the appropriate columns -- you're making two edits -- and the NULL rows will be fixed. 
 All the other rows will remain the same.) */
 
+SELECT
+product_name || ', ' || product_size|| ' (' || product_qty_type || ')',
+coalesce(product_size,'')AS[EMPTY] ,
+coalesce(product_qty_type,'uNIT')AS [NULL]
+FROM product
 
 
 --Windowed Functions
@@ -32,6 +37,15 @@ each new market date for each customer, or select only the unique market dates p
 (without purchase details) and number those visits. 
 HINT: One of these approaches uses ROW_NUMBER() and one uses DENSE_RANK(). */
 
+ SELECT *
+ FROM (
+ SELECT 
+ customer_id,market_date,
+ row_number()OVER (PARTITION BY customer_id ORDER BY market_date) AS[ROWNUMBER],
+dense_rank()OVER (PARTITION BY customer_id ORDER BY market_date) AS[DENSERANK]
+  FROM customer_purchases 
+ GROUP BY customer_id,market_date
+ )
 
 
 /* 2. Reverse the numbering of the query from a part so each customer’s most recent visit is labeled 1, 
@@ -39,10 +53,32 @@ then write another query that uses this one as a subquery (or temp table) and fi
 only the customer’s most recent visit. */
 
 
+	  SELECT *
+	 FROM (
+	 SELECT
+	 customer_id,market_date,
+	 row_number()OVER (PARTITION BY customer_id ORDER BY market_date DESC) AS[ROWNUMBER],
+	dense_rank()OVER (PARTITION BY customer_id ORDER BY market_date DESC) AS[DENSERANK]
+	  FROM customer_purchases 
+	 GROUP BY customer_id,market_date
+	 )X
+	 WHERE X.ROWNUMBER=1
+
+
 
 /* 3. Using a COUNT() window function, include a value along with each row of the 
 customer_purchases table that indicates how many different times that customer has purchased that product_id. */
 
+	 
+	 SELECT *
+	 FROM (
+		 SELECT 
+		 customer_id,market_date,product_id,count(product_id) as [total],
+		 row_number()OVER (PARTITION BY customer_id ORDER BY market_date DESC)AS[ROWNUMBER],
+		dense_rank()OVER (PARTITION BY customer_id ORDER BY market_date DESC) AS[DENSERANK]
+		 FROM customer_purchases 
+		 GROUP BY product_id,market_date
+		 )
 
 
 -- String manipulations
