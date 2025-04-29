@@ -192,11 +192,18 @@ This table will contain only products where the `product_qty_type = 'unit'`.
 It should use all of the columns from the product table, as well as a new column for the `CURRENT_TIMESTAMP`.  
 Name the timestamp column `snapshot_timestamp`. */
 
+CREATE TABLE PRODUCT_UNITS AS
+SELECT *,CURRENT_TIMESTAMP as snapshot_timestamp
+FROM product
+WHERE product_qty_type LIKE '%unit%'
 
 
 /*2. Using `INSERT`, add a new row to the product_units table (with an updated timestamp). 
 This can be any product you desire (e.g. add another record for Apple Pie). */
 
+
+INSERT INTO PRODUCT_UNITS (product_id,product_name,product_size,product_category_id,product_qty_type,snapshot_timestamp)
+values(100,'Chese Cake','10"',3,'unit','2025-04-29 00:20:49')
 
 
 -- DELETE
@@ -204,7 +211,8 @@ This can be any product you desire (e.g. add another record for Apple Pie). */
 
 HINT: If you don't specify a WHERE clause, you are going to have a bad time.*/
 
-
+DELETE FROM PRODUCT_UNITS
+WHERE product_id=100
 
 -- UPDATE
 /* 1.We want to add the current_quantity to the product_units table. 
@@ -223,6 +231,17 @@ Finally, make sure you have a WHERE statement to update the right row,
 	you'll need to use product_units.product_id to refer to the correct row within the product_units table. 
 When you have all of these components, you can run the update statement. */
 
-
+WITH LATEST_VALUE AS (
+SELECT  product_id,quantity
+FROM vendor_inventory
+WHERE (product_id,market_date) IN (SELECT product_id, MAX(market_date)
+FROM vendor_inventory
+GROUP BY product_id
+)
+)
+UPDATE PRODUCT_UNITS
+SET current_quantity = COALESCE(current_quantity,0) + (
+SELECT quantity FROM LATEST_VALUE WHERE LATEST_VALUE.product_id=PRODUCT_UNITS.product_id)
+WHERE product_id IN (SELECT product_id FROM LATEST_VALUE)
 
 
