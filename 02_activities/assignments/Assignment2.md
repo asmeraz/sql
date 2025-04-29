@@ -54,7 +54,29 @@ The store wants to keep customer addresses. Propose two architectures for the CU
 **HINT:** search type 1 vs type 2 slowly changing dimensions. 
 
 ```
-Your answer...
+TYPE1:
+Customer_address (
+customer_Id INT,
+street VARCHART (100),
+city VCHART (50),
+state VCHART (50),
+postal code VCHART(9),
+country VCHART (30),
+)
+
+TYPE2:
+Customer_address (
+address_Id INT,
+customer_Id INT,
+street VARCHART (100),
+city VCHART (50),
+state VCHART (50),
+postal code VCHART(9),
+country VCHART (30),
+start_date DATE,
+end_date DATE,
+is_current BOOLEAN
+)
 ```
 
 ***
